@@ -853,16 +853,14 @@ let orders = [
 ];
 
 app.get("/api/orders/", (req, res) => {
-    console.log("in get request");
     res.send(orders);
 });
 
 app.get("/api/orders/:id", (req, res) => {
-    console.log("in 2nd get request");
     const order = orders.find((order) => order._id === parseInt(req.params.id));
     res.send(order);
 });
 
 app.listen(3001, () => {
-    console.log("Server is up and running");
+    console.log("Server up");
 });
