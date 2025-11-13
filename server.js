@@ -1,6 +1,7 @@
 const express = require("express");
 const cors = require("cors");
 const multer = require("multer");
+const Joi = require("joi");
 const app = express();
 app.use(express.static("public"));
 app.use(express.json());
@@ -860,6 +861,81 @@ app.get("/api/orders/:id", (req, res) => {
     const order = orders.find((order) => order._id === parseInt(req.params.id));
     res.send(order);
 });
+
+app.post("/api/orders", upload.single("img"), (req,res)=>{
+    console.log("in post request");
+    const result = validateOrder(req.body);
+
+
+    if(result.error){
+        console.log("Error encountered");
+        res.status(400).send(result.error.details[0].message);
+        return;
+    }
+
+    const order = {
+        _id:orders.length,
+        name:req.body.name,
+        category:properCategory(req.body.category),
+        price:req.body.price,
+        description:req.body.description,
+        ingredients:makeArray(req.body.ingredients),
+        allergens:makeArray(req.body.allergens),
+    };
+
+    if(req.file){
+        order.img = req.file.filename;
+    }
+
+    orders.push(order);
+    res.status(200).send(order);
+});
+
+const validateOrder = (order) => {
+    const schema = Joi.object({
+        _id:Joi.allow(""),
+        name:Joi.string().min(3).required(),
+        category:Joi.string().min(3).required(),
+        price:Joi.number().min(0.10).required(),
+        description:Joi.string().min(10).required(),
+        ingredients:Joi.string().min(3).required(),
+        allergens:Joi.string().min(3).required(),
+    });
+
+    return schema.validate(order);
+};
+
+const makeArray = (string) => {
+    let array = [];
+    if (string.includes(',')) {
+        array = string.split(',');
+    } else {
+        array = [string];
+    }
+
+    return array;
+};
+
+const properCategory = (string) => {
+    let cat = "";
+    if (string == "sandwiches") {
+        cat = "sandwich";
+    } else if (string == "soups") {
+        cat = "soup";
+    } else if (string == "cold-cuts") {
+        cat = "cold-cut";
+    } else if (string == "jarred-goods") {
+        cat = "jarred";
+    } else if (string == "cheese") {
+        cat = "cheese";
+    } else if (string == "extras") {
+        cat = "extra";
+    } else if (string == "desserts") {
+        cat = "dessert";
+    }
+
+    return cat;
+}
 
 app.listen(3001, () => {
     console.log("Server up");
