@@ -883,7 +883,7 @@ app.post("/api/orders", upload.single("img"), (req,res)=>{
         allergens:makeArray(req.body.allergens),
     };
 
-    if(req.file){
+    if (req.file){
         order.img = req.file.filename;
     }
 
@@ -935,7 +935,50 @@ const properCategory = (string) => {
     }
 
     return cat;
-}
+};
+
+app.put("/api/orders:id", upload.single("img"), (req, res) => {
+    const order = orders.find((o) => o._id === parseInt(req.params.id));
+
+    if (!order) {
+        res.status(404).send("Menu item not found.");
+        return;
+    }
+
+    const isValidUpdate = validateOrder(req.body);
+
+    if (isValidUpdate.error) {
+        console.log("Invalid update information.");
+        res.status(400).send(isValidUpdate.error.details[0].message);
+        return;
+    }
+
+    order.name = req.body.name;
+    order.category = properCategory(req.body.category);
+    order.price = req.body.price;
+    order.description = req.body.description;
+    order.ingredients = makeArray(req.body.ingredients);
+    order.allergens = makeArray(req.body.allergens);
+
+    if (req.file) {
+        order.img = req.file.filename;
+    }
+
+    res.status(200).send(order);
+});
+
+app.delete("/api/houses/:id", (req, res) => {
+    const order = orders.find((o) => o._id === parseInt(req.params.id));
+
+    if (!order) {
+        res.status(404).send("Menu item not found.");
+        return;
+    }
+
+    const index = orders.indexOf(order);
+    orders.splice(index, 1);
+    res.status(200).send(order);
+});
 
 app.listen(3001, () => {
     console.log("Server up");
