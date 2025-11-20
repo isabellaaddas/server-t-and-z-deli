@@ -937,7 +937,7 @@ const properCategory = (string) => {
     return cat;
 };
 
-app.put("/api/orders:id", upload.single("img"), (req, res) => {
+app.put("/api/orders/:id", upload.single("img"), (req, res) => {
     const order = orders.find((o) => o._id === parseInt(req.params.id));
 
     if (!order) {
@@ -954,7 +954,7 @@ app.put("/api/orders:id", upload.single("img"), (req, res) => {
     }
 
     order.name = req.body.name;
-    order.category = properCategory(req.body.category);
+    order.category = req.body.category;
     order.price = req.body.price;
     order.description = req.body.description;
     order.ingredients = makeArray(req.body.ingredients);
@@ -967,7 +967,7 @@ app.put("/api/orders:id", upload.single("img"), (req, res) => {
     res.status(200).send(order);
 });
 
-app.delete("/api/houses/:id", (req, res) => {
+app.delete("/api/orders/:id", (req, res) => {
     const order = orders.find((o) => o._id === parseInt(req.params.id));
 
     if (!order) {
