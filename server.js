@@ -3,6 +3,7 @@ const cors = require("cors");
 const multer = require("multer");
 const Joi = require("joi");
 const app = express();
+const mongoose = require("mongoose");
 app.use(express.static("public"));
 app.use(express.json());
 app.use(cors());
@@ -18,6 +19,24 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage: storage });
 
+mongoose
+  .connect("mongodb+srv://isabellaaddas_db_user:SuperBat25!@data.itwy5wy.mongodb.net/")
+  .then(() => console.log("Connected to mongodb..."))
+  .catch((err) => console.error("could not connect ot mongodb...", err));
+
+const orderSchema = new mongoose.Schema({
+    name:String,
+    category:String,
+    price:Number,
+    description:String,
+    ingredients:[String],
+    allergens:[String],
+    img:String
+});
+
+const Order = mongoose.model("Order", orderSchema);
+
+/*
 let orders = [
     {
         "_id": 1,
@@ -852,43 +871,43 @@ let orders = [
         "img":"assorted-cookies.jpg"
     }
 ];
+*/
 
-app.get("/api/orders/", (req, res) => {
+app.get("/api/orders/", async(req, res) => {
+    const orders = await Order.find();
     res.send(orders);
 });
 
-app.get("/api/orders/:id", (req, res) => {
-    const order = orders.find((order) => order._id === parseInt(req.params.id));
+app.get("/api/orders/:id", async(req, res) => {
+    const order = await Order.find((order) => order._id === parseInt(req.params.id));
     res.send(order);
 });
 
-app.post("/api/orders", upload.single("img"), (req,res)=>{
+app.post("/api/orders", upload.single("img"), async(req,res)=>{
     console.log("in post request");
-    const result = validateOrder(req.body);
+    const isValidOrder = validateOrder(req.body);
 
-
-    if(result.error){
+    if (isValidOrder.error){
         console.log("Error encountered");
-        res.status(400).send(result.error.details[0].message);
+        res.status(400).send(isValidOrder.error.details[0].message);
         return;
     }
 
-    const order = {
-        _id:orders.length,
+    const order = new Order({
         name:req.body.name,
         category:properCategory(req.body.category),
         price:req.body.price,
         description:req.body.description,
         ingredients:makeArray(req.body.ingredients),
         allergens:makeArray(req.body.allergens),
-    };
+    });
 
-    if (req.file){
+    if (req.file) {
         order.img = req.file.filename;
     }
 
-    orders.push(order);
-    res.status(200).send(order);
+    const newOrder = await order.save();
+    res.status(200).send(newOrder);
 });
 
 const validateOrder = (order) => {
@@ -937,14 +956,7 @@ const properCategory = (string) => {
     return cat;
 };
 
-app.put("/api/orders/:id", upload.single("img"), (req, res) => {
-    const order = orders.find((o) => o._id === parseInt(req.params.id));
-
-    if (!order) {
-        res.status(404).send("Menu item not found.");
-        return;
-    }
-
+app.put("/api/orders/:id", upload.single("img"), async(req, res) => {
     const isValidUpdate = validateOrder(req.body);
 
     if (isValidUpdate.error) {
@@ -953,30 +965,38 @@ app.put("/api/orders/:id", upload.single("img"), (req, res) => {
         return;
     }
 
-    order.name = req.body.name;
-    order.category = req.body.category;
-    order.price = req.body.price;
-    order.description = req.body.description;
-    order.ingredients = makeArray(req.body.ingredients);
-    order.allergens = makeArray(req.body.allergens);
-
-    if (req.file) {
-        order.img = req.file.filename;
+    const fieldsToUpdate = {
+        name:req.body.name,
+        category:req.body.category,
+        price:req.body.price,
+        description:req.body.description,
+        ingredients:makeArray(req.body.ingredients),
+        allergens:makeArray(req.body.allergens),
     }
 
-    res.status(200).send(order);
-});
+    if (req.file) {
+        fieldsToUpdate.img = req.file.filename;
+    }
 
-app.delete("/api/orders/:id", (req, res) => {
-    const order = orders.find((o) => o._id === parseInt(req.params.id));
+    const success = await Order.updateOne({_id:req.params.id}, fieldsToUpdate);
 
-    if (!order) {
-        res.status(404).send("Menu item not found.");
+    if (!success) {
+        res.status(404).send("Menu item to edit not found.");
         return;
     }
 
-    const index = orders.indexOf(order);
-    orders.splice(index, 1);
+    const order = await Order.findById(req.params.id);
+    res.status(200).send(order);
+});
+
+app.delete("/api/orders/:id", async(req, res) => {
+    const order = await House.findByIdAndDelete(req.params.id);
+
+    if (!order) {
+        res.status(404).send("Menu item to delete not found.");
+        return;
+    }
+    
     res.status(200).send(order);
 });
 
