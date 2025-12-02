@@ -19,7 +19,7 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage: storage });
 
-mongoose
+await mongoose
   .connect("mongodb+srv://isabellaaddas_db_user:SuperBat25!@data.itwy5wy.mongodb.net/")
   .then(() => console.log("Connected to mongodb..."))
   .catch((err) => console.error("could not connect ot mongodb...", err));
@@ -875,6 +875,7 @@ let orders = [
 
 app.get("/api/orders/", async(req, res) => {
     const orders = await Order.find();
+    console.log(orders);
     res.send(orders);
 });
 
