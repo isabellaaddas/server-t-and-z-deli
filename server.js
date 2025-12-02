@@ -19,10 +19,12 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage: storage });
 
-await mongoose
-  .connect("mongodb+srv://isabellaaddas_db_user:SuperBat25!@data.itwy5wy.mongodb.net/")
-  .then(() => console.log("Connected to mongodb..."))
-  .catch((err) => console.error("could not connect ot mongodb...", err));
+async() => (
+    await mongoose
+    .connect("mongodb+srv://isabellaaddas_db_user:SuperBat25!@data.itwy5wy.mongodb.net/")
+    .then(() => console.log("Connected to mongodb..."))
+    .catch((err) => console.error("could not connect ot mongodb...", err))
+);
 
 const orderSchema = new mongoose.Schema({
     name:String,
