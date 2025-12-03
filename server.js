@@ -879,7 +879,7 @@ app.get("/api/orders/", async(req, res) => {
 });
 
 app.get("/api/orders/:id", async(req, res) => {
-    const order = await Order.findOne({_id:id});
+    const order = await Order.findOne({_id: req.params.id});
     res.send(order);
 });
 
