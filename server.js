@@ -990,7 +990,7 @@ app.put("/api/orders/:id", upload.single("img"), async(req, res) => {
 });
 
 app.delete("/api/orders/:id", async(req, res) => {
-    const order = await House.findByIdAndDelete(req.params.id);
+    const order = await Order.findByIdAndDelete(req.params.id);
 
     if (!order) {
         res.status(404).send("Menu item to delete not found.");
